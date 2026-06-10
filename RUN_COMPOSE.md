@@ -1,114 +1,47 @@
-# RUN_COMPOSE.md – Hướng dẫn chạy Lab 05
+# Hướng dẫn chạy và kiểm thử hệ thống với Docker Compose
 
-Tài liệu này hướng dẫn người khác clone repo sạch và chạy lại stack Compose của Lab 05.
+Tài liệu này hướng dẫn các bước để khởi chạy và kiểm thử toàn bộ stack dịch vụ bao gồm API, Database và AI service thông qua Docker Compose.
 
----
+## Yêu cầu trước khi chạy
+- Cài đặt và bật [Docker Desktop](https://www.docker.com/products/docker-desktop/) hoặc Docker Engine trên máy.
+- Cài đặt Node.js và NPM (để chạy Newman kiểm thử tự động).
 
-## 1. Clone repo
+## Các bước khởi chạy
 
-```bash
-git clone <repo-url>
-cd FIT4110_lab05_docker_compose_readiness
-```
+1. **Chuẩn bị biến môi trường (Environment Variables)**:
+   Mở terminal tại thư mục gốc của dự án và chạy lệnh sau để copy file cấu hình mặc định:
+   ```bash
+   cp .env.example .env
+   ```
+   *(File `.env` sẽ cung cấp các thông tin cần thiết như POSTGRES_USER, APP_PORT, AUTH_TOKEN... cho các container).*
 
----
+2. **Khởi chạy hệ thống**:
+   Sử dụng Makefile để tự động build và chạy toàn bộ Docker Compose stack:
+   ```bash
+   make compose-up
+   ```
+   *Lệnh này sẽ tải các image cần thiết, build image cho API và AI Service, thiết lập mạng `team-internal` và chạy các container ở chế độ background.*
 
-## 2. Cài dependencies cho Newman/Prism/Spectral (tuỳ chọn)
+3. **Kiểm tra trạng thái (Health Check)**:
+   Sau khi các container đã được tạo, hãy theo dõi log để đảm bảo mọi thứ đã khởi động xong:
+   ```bash
+   make logs
+   ```
+   Bạn cũng có thể kiểm tra sức khỏe của từng dịch vụ bằng lệnh:
+   - **API**: `curl http://localhost:8000/health`
+   - **AI**: `curl http://localhost:9000/health`
+   - **DB**: `docker exec -it fit4110-db-lab05 pg_isready -U lab05`
 
-```bash
-npm install
-```
+4. **Chạy kiểm thử End-to-End với Postman/Newman**:
+   Khi các dịch vụ đã trong trạng thái Ready, hãy cài đặt các Node dependencies và chạy bài kiểm thử:
+   ```bash
+   npm install
+   make test-compose
+   ```
+   *Báo cáo test sẽ được lưu dưới dạng file HTML trong thư mục `reports/`.*
 
----
-
-## 3. Build & chạy stack Docker Compose
-
-```bash
-# Copy .env.example sang .env và chỉnh sửa nếu cần
-cp .env.example .env
-
-# Build images (nếu chưa có) và khởi động các container trong nền
-docker compose up -d --build
-```
-
-Lệnh trên sẽ tạo các container:
-
-- `fit4110-db-lab05` (PostgreSQL)
-- `fit4110-ai-lab05` (AI service mẫu chạy port 9000)
-- `fit4110-api-lab05` (API FastAPI trên port 8000)
-
-Theo dõi log:
-
-```bash
-docker compose logs -f
-```
-
-Sau vài giây, kiểm tra health của mỗi service:
-
-```bash
-# API
-curl http://localhost:8000/health
-
-# AI service
-curl http://localhost:9000/health
-
-# DB readiness
-docker exec -it fit4110-db-lab05 pg_isready -U $POSTGRES_USER
-```
-
-Bạn cũng có thể truy cập endpoint `/predict` của AI service để xem kết quả mẫu:
-
-```bash
-curl -X POST http://localhost:9000/predict
-```
-
----
-
-## 4. Chạy Newman test trên stack Compose (tuỳ chọn)
-
-```bash
-npm run test:compose
-```
-
-Report sinh tại:
-
-```text
-reports/newman-lab05-compose.xml
-reports/newman-lab05-compose.html
-```
-
----
-
-## 5. Dừng stack
-
-Khi không cần nữa, dừng và xoá các container bằng:
-
-```bash
-docker compose down
-```
-
-Nếu muốn xoá volume dữ liệu của DB, thêm tuỳ chọn `-v`:
-
-```bash
-docker compose down -v
-```
-
----
-
-## 6. Lệnh nhanh
-
-Bạn có thể dùng Makefile:
-
-```bash
-make compose-up
-make compose-down
-make logs
-```
-
----
-
-## 7. Mẹo gỡ lỗi
-
-- Sử dụng `docker compose ps` để xem trạng thái container.
-- Nếu API trả lỗi kết nối DB, hãy kiểm tra biến môi trường `POSTGRES_*` trong `.env` và đảm bảo DB đã sẵn sàng (`pg_isready`).
-- Nếu AI service cần tải mô hình lớn, tăng `start_period` của healthcheck trong `docker-compose.yml`.
+5. **Dừng hệ thống**:
+   Sau khi hoàn tất, bạn có thể tắt và xóa các container thông qua lệnh:
+   ```bash
+   make compose-down
+   ```

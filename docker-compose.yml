@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   # Service API FastAPI
   api:
@@ -46,16 +44,19 @@ services:
 
   # AI service mẫu dùng Python HTTP server hoặc FastAPI
   ai-service:
-    image: python:3.11-slim
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: fit4110-ai-lab05
-    working_dir: /service
-    volumes:
-      - ./src/ai_service:/service
-    command: ["python", "main.py"]
+    env_file:
+      - .env
+    environment:
+      - APP_PORT=9000
+    command: ["sh", "-c", "uvicorn ai_service.main:app --app-dir src --host 0.0.0.0 --port 9000"]
     networks:
       - team-internal
     healthcheck:
-      test: ["CMD-SHELL", "python -c \"import requests; import sys; sys.exit(0) if requests.get('http://localhost:9000/health').status_code == 200 else sys.exit(1)\""]
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:9000/health', timeout=3).read()\" || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3

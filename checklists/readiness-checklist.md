@@ -1,16 +1,18 @@
-# Readiness Checklist – Lab 05
+# Readiness Checklist - Lab 05
 
-Đây là danh sách kiểm tra (checklist) để đảm bảo stack Docker Compose của bạn đã sẵn sàng trước khi gửi bài. Hãy tick vào mỗi mục sau khi hoàn thành.
+Tick cac muc sau sau khi da chay `docker compose up -d --build --wait` va `npm run test:compose`.
 
-- [x] **Database ready:** container DB đã chạy và phản hồi `pg_isready`. Kiểm tra bằng `docker exec -it fit4110-db-lab05 pg_isready -U $POSTGRES_USER`.
-- [x] **AI service ready:** container AI service trả về `200` cho endpoint `/health` và `/predict` hoạt động.
-- [x] **API ready:** container API trả `200` cho `/health` và có thể tạo/lấy readings khi token hợp lệ.
-- [x] **Environment variables:** `.env` đã được thiết lập đúng (APP_PORT, POSTGRES_USER, AUTH_TOKEN,…). Không sử dụng secret thật; lưu secret vào `.env` cục bộ, commit `.env.example`.
-- [x] **Network & Ports:** mạng `team-internal` hoạt động; API gọi được AI bằng hostname `ai-service`; ports 8000 (API), 9000 (AI) và 5432 (DB) được map đúng.
-- [x] **Image tags:** bạn đã build image với tag `v0.1.0-<team>` và push lên registry (ghcr.io hoặc Docker Hub). Xác nhận rằng tag xuất hiện trong registry.
+- [x] **Database ready:** container DB chay healthy va `docker compose exec -T db pg_isready -U lab05` tra `accepting connections`.
+- [x] **AI service ready:** AI service tra `200` cho `/health` va `/predict` hoat dong.
+- [x] **API ready:** API tra `200` cho `/health`, tao/lay readings thanh cong khi token hop le.
+- [x] **Environment variables:** `.env` duoc tao tu `.env.example`; khong commit secret that.
+- [x] **Network & Ports:** network `team-internal` hoat dong; API goi AI qua hostname `ai-service`; ports 8000 va 9000 duoc map dung.
+- [x] **Image tags:** image da duoc build/tag/push theo dang `v0.1.0-<team>` len GHCR hoac Docker Hub.
 
-Ghi chú thêm những vấn đề gặp phải hoặc điều chỉnh tại đây:
+Ghi chu:
 
-```
-- Mô tả…
+```text
+- Compose stack da chay healthy voi 3 container: api, ai-service, db.
+- Newman pass 19/19 assertions va sinh report trong reports/.
+- Evidence screenshots da luu trong reports/screenshots/.
 ```

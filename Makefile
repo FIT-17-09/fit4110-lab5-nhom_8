@@ -1,4 +1,7 @@
-.PHONY: install lint build run compose-up compose-down logs test-compose
+.PHONY: install lint build run compose-up compose-down logs test-compose image-build image-push
+
+IMAGE_NAME ?= fit4110/iot-ingestion
+IMAGE_TAG ?= v0.1.0-team-iot
 
 # Install Node dependencies for Prism/Spectral/Newman
 install:
@@ -10,11 +13,11 @@ lint:
 
 # Build Docker image for API only
 build:
-	docker build -t fit4110/iot-ingestion:lab05 .
+	docker build -t $(IMAGE_NAME):lab05 .
 
 # Run API container standalone (not via compose)
 run:
-	docker run --rm --name fit4110-api-lab05 -p 8000:8000 --env-file .env.example fit4110/iot-ingestion:lab05
+	docker run --rm --name fit4110-api-lab05 -p 8000:8000 --env-file .env.example $(IMAGE_NAME):lab05
 
 # Compose commands
 compose-up:
@@ -29,3 +32,9 @@ logs:
 # Run Newman tests on compose stack
 test-compose:
 	npm run test:compose
+
+image-build:
+	docker build -t $(IMAGE_NAME):$(IMAGE_TAG) .
+
+image-push:
+	docker push $(IMAGE_NAME):$(IMAGE_TAG)
